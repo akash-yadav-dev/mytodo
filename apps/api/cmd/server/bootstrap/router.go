@@ -9,6 +9,48 @@ import (
 	"time"
 )
 
+// Package bootstrap handles application initialization.
+//
+// This file sets up HTTP routing and middleware configuration.
+//
+// In production-grade applications, router setup typically includes:
+// - Route grouping and versioning (/api/v1, /api/v2)
+// - Middleware chaining (logging, auth, CORS, rate limiting)
+// - Route-level middleware (specific auth for endpoints)
+// - Static file serving
+// - WebSocket routes
+// - OpenAPI/Swagger documentation endpoint
+// - Health check and metrics endpoints
+//
+// Example structure:
+//   func SetupRouter(container *Container) *mux.Router {
+//       router := mux.NewRouter()
+//
+//       // Global middleware
+//       router.Use(middleware.RequestID)
+//       router.Use(middleware.Logger)
+//       router.Use(middleware.Recovery)
+//       router.Use(middleware.CORS)
+//
+//       // Health endpoints (no auth)
+//       router.HandleFunc("/health", healthHandler).Methods("GET")
+//       router.HandleFunc("/ready", readinessHandler).Methods("GET")
+//
+//       // API v1 routes
+//       apiV1 := router.PathPrefix("/api/v1").Subrouter()
+//       apiV1.Use(middleware.Auth)
+//
+//       // Register module routes
+//       registerAuthRoutes(apiV1, container)
+//       registerProjectRoutes(apiV1, container)
+//       registerIssueRoutes(apiV1, container)
+//
+//       return router
+//   }
+//
+// Example middleware chain:
+//   Request -> RequestID -> Logger -> Recovery -> CORS -> Auth -> Handler
+
 type Router struct {
 	mux    *http.ServeMux
 	app    *App

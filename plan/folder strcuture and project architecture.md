@@ -694,10 +694,3 @@ A Jira-like system using this architecture can support:
 5. **Set up CI/CD** pipelines for automated deployments
 
 ---
-
-# If you want, I can also show:
-
-* **The exact Jira database schema (120+ tables)**
-* **How Linear / Notion design their issue system**
-* **The best Go backend architecture for SaaS**
-* **How to build this into a $10M SaaS product** (seriously).
