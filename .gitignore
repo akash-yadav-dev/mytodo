@@ -1,0 +1,83 @@
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go build
+/build/
+/bin/
+/dist/
+
+# Dependency directories (remove the comment below if you use Go modules)
+/vendor/
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+*.bak
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Node modules (for frontend)
+node_modules/
+
+# Logs
+*.log
+logs/
+
+# OS generated files
+*.DS_Store
+*.AppleDouble
+*.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+# Docker
+**/Dockerfile*
+**/.dockerignore
+
+# Environment files
+.env
+.env.*
+
+# Database
+*.sqlite
+*.db
+*.sql
+
+# Coverage
+coverage/
+*.coverprofile
+*.cov
+
+# Test output
+*.testresult
+
+# Misc
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Ignore local secrets
+secrets/
+
+# Ignore generated code
+**/gen/
+
+# Ignore migration/seed data
+**/migrations/*.sql
+**/seed/data/
+
+# Ignore plan/notes
+plan/*.bak
+plan/*.tmp
