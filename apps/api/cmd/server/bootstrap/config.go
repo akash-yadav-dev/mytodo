@@ -49,7 +49,6 @@ import (
 
 type Config struct {
 	// Server
-
 	ServerPort string
 
 	//Database
@@ -71,6 +70,7 @@ type Config struct {
 }
 
 func LoadConfig() *Config {
+
 	return &Config{
 		// Server
 		ServerPort: getEnv("PORT", "8080"),
