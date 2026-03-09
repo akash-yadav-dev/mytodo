@@ -1,0 +1,8 @@
+[data-theme="light"] {
+	--color-bg: #f8f6f1;
+	--color-fg: #1c1b1f;
+	--color-card: #ffffff;
+	--color-border: rgba(17, 24, 39, 0.15);
+	--color-accent: #f97316;
+	--color-accent-muted: rgba(249, 115, 22, 0.15);
+}

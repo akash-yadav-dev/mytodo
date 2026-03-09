@@ -1,20 +1,23 @@
 package bootstrap
 
 import (
-	"fmt"
 	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(container *Container) http.Handler {
+func SetupRouter(container *Container) *gin.Engine {
 
-	mux := http.NewServeMux()
+	router := gin.New()
 
-	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+	// Production middleware
+	router.Use(gin.Recovery())
+	router.Use(gin.Logger())
 
+	router.GET("/health", func(c *gin.Context) {
 		container.Log.Info("Health check endpoint called")
-
-		fmt.Fprint(w, "OK")
+		c.String(http.StatusOK, "server is running")
 	})
 
-	return mux
+	return router
 }

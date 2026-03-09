@@ -78,9 +78,9 @@ func LoadConfig() *Config {
 		// Database
 		DBHost:     getEnv("DB_HOST", "localhost"),
 		DBPort:     getEnvAsInt("DB_PORT", 5432),
-		DBUser:     getEnv("DB_USER", "postgres"),
-		DBPassword: getEnv("DB_PASSWORD", "password"),
-		DBName:     getEnv("DB_NAME", "todoapp"),
+		DBUser:     getEnv("DB_USER", "mytodo"),
+		DBPassword: getEnv("DB_PASSWORD", "mytodo_dev_password"),
+		DBName:     getEnv("DB_NAME", "mytodo_dev"),
 
 		// Redis
 		RedisHost: getEnv("REDIS_HOST", "localhost"),

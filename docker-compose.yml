@@ -19,7 +19,7 @@ services:
     networks:
       - mytodo-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mytodo"]
+      test: ["CMD-SHELL", "pg_isready -U mytodo -d mytodo_dev"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -125,6 +125,10 @@ services:
       - MINIO_SECRET_KEY=minioadmin123
     ports:
       - "8080:8080"
+
+    volumes:
+      - go_mod_cache:/go/pkg/mod
+
     depends_on:
       postgres:
         condition: service_healthy
@@ -132,8 +136,7 @@ services:
         condition: service_healthy
       elasticsearch:
         condition: service_healthy
-      # nats:
-      #   condition: service_healthy
+
     networks:
       - mytodo-network
     restart: unless-stopped
@@ -198,5 +201,7 @@ volumes:
   elasticsearch_data:
   nats_data:
   minio_data:
+  go_mod_cache:
+    
   # prometheus_data:
   # grafana_data:
