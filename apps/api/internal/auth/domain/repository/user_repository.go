@@ -19,6 +19,13 @@
 
 package repository
 
+import (
+	"context"
+	"mytodo/apps/api/internal/auth/domain/entity"
+
+	"github.com/google/uuid"
+)
+
 // UserRepository defines data access methods for user entities.
 // In production applications, user repositories typically provide:
 // - FindByID(id) - retrieve user by unique identifier
@@ -33,3 +40,11 @@ package repository
 // - UpdateLastLogin(id, timestamp) - track login activity
 // - ActivateAccount(id) - account activation
 // - Search(query) - full-text search across user fields
+
+type UserRepository interface {
+	Create(ctx context.Context, user *entity.User) error
+	FindByID(ctx context.Context, id uuid.UUID) (*entity.User, error)
+	FindByEmail(ctx context.Context, email string) (*entity.User, error)
+	Update(ctx context.Context, user *entity.User) error
+	ExistsByEmail(ctx context.Context, email string) (bool, error)
+}

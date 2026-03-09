@@ -4,13 +4,24 @@
 
 package http
 
-// Routes file registers HTTP routes for the auth module.
-// In production applications, route files typically:
-// - Define route groups (/api/v1/auth, /api/v1/users)
-// - Register all endpoints with their handlers
-// - Apply middleware to routes (authentication, authorization)
-// - Define route-specific middleware (rate limiting on login)
-// - Configure CORS for specific routes
-// - Set up route-level metrics and logging
-// - Define API versioning strategy
-// - Document routes (for API documentation generation)
+import (
+	"mytodo/apps/api/pkg/middleware"
+	"mytodo/apps/api/pkg/security"
+
+	"github.com/gin-gonic/gin"
+)
+
+// RegisterAuthRoutes registers all auth-related routes
+func RegisterAuthRoutes(router *gin.RouterGroup, controller *AuthController, jwtService *security.JWTService) {
+	auth := router.Group("/auth")
+	{
+		// Public routes
+		auth.POST("/register", controller.Register)
+		auth.POST("/login", controller.Login)
+		auth.POST("/refresh", controller.RefreshToken)
+		auth.POST("/logout", controller.Logout)
+
+		// Protected routes
+		auth.GET("/me", middleware.AuthMiddleware(jwtService), controller.Me)
+	}
+}

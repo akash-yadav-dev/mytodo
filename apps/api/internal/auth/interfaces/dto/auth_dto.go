@@ -25,12 +25,52 @@
 
 package dto
 
-// Auth DTOs for authentication operations.
-// In production applications, auth DTOs typically include:
-// - LoginRequest: email, password
-// - LoginResponse: access_token, refresh_token, expires_in, user
-// - RegisterRequest: email, password, name, etc.
-// - RegisterResponse: user, tokens
-// - RefreshTokenRequest: refresh_token
-// - RefreshTokenResponse: access_token, expires_in
-// - ResetPasswordRequest: token, new_password
+import "mytodo/apps/api/internal/auth/domain/entity"
+
+// LoginRequest represents login credentials
+type LoginRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+}
+
+// RegisterRequest represents registration data
+type RegisterRequest struct {
+	Name     string `json:"name" binding:"required,min=2"`
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=6"`
+}
+
+// RefreshTokenRequest represents refresh token request
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refresh_token" binding:"required"`
+}
+
+// AuthResponse represents authentication response with tokens
+type AuthResponse struct {
+	AccessToken  string   `json:"access_token"`
+	RefreshToken string   `json:"refresh_token"`
+	TokenType    string   `json:"token_type"`
+	ExpiresIn    int64    `json:"expires_in"`
+	User         *UserDTO `json:"user"`
+}
+
+// UserDTO represents user information in responses
+type UserDTO struct {
+	ID    string `json:"id"`
+	Email string `json:"email"`
+	Name  string `json:"name"`
+}
+
+// ToUserDTO converts domain User entity to DTO
+func ToUserDTO(user *entity.User) *UserDTO {
+	return &UserDTO{
+		ID:    user.ID.String(),
+		Email: user.Email,
+		Name:  user.Name,
+	}
+}
+
+// MessageResponse represents a simple message response
+type MessageResponse struct {
+	Message string `json:"message"`
+}

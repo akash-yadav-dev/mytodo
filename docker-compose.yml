@@ -14,7 +14,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./infrastructure/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./infrastructure/docker/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./infrastructure/scripts/init_auth_schema.sql:/docker-entrypoint-initdb.d/02-init_auth_schema.sql
       - ./infrastructure/docker/postgres/postgresql.conf:/etc/postgresql/postgresql.conf
     networks:
       - mytodo-network

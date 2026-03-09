@@ -24,6 +24,16 @@
 
 package persistence
 
+import (
+	"context"
+	"database/sql"
+	"errors"
+	"mytodo/apps/api/internal/auth/domain/entity"
+	"mytodo/apps/api/internal/auth/domain/repository"
+
+	"github.com/google/uuid"
+)
+
 // UserRepositoryImpl is the PostgreSQL implementation of UserRepository interface.
 // In production applications, repository implementations typically:
 // - Use connection pooling for performance
@@ -34,3 +44,106 @@ package persistence
 // - Cache frequently accessed data
 // - Use transactions for multi-step operations
 // - Log slow queries for performance monitoring
+
+type UserRepositoryImpl struct {
+	db *sql.DB
+}
+
+func NewUserRepository(db *sql.DB) repository.UserRepository {
+	return &UserRepositoryImpl{db: db}
+}
+
+func (r *UserRepositoryImpl) Create(ctx context.Context, user *entity.User) error {
+	query := `
+		INSERT INTO users (id, email, password_hash, name, created_at, updated_at, is_active)
+		VALUES ($1, $2, $3, $4, $5, $6, $7)
+	`
+	_, err := r.db.ExecContext(ctx, query,
+		user.ID,
+		user.Email,
+		user.PasswordHash,
+		user.Name,
+		user.CreatedAt,
+		user.UpdatedAt,
+		user.IsActive,
+	)
+	return err
+}
+
+func (r *UserRepositoryImpl) FindByID(ctx context.Context, id uuid.UUID) (*entity.User, error) {
+	query := `
+		SELECT id, email, password_hash, name, created_at, updated_at, last_login_at, is_active
+		FROM users
+		WHERE id = $1
+	`
+	user := &entity.User{}
+	err := r.db.QueryRowContext(ctx, query, id).Scan(
+		&user.ID,
+		&user.Email,
+		&user.PasswordHash,
+		&user.Name,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+		&user.LastLoginAt,
+		&user.IsActive,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, errors.New("user not found")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (r *UserRepositoryImpl) FindByEmail(ctx context.Context, email string) (*entity.User, error) {
+	query := `
+		SELECT id, email, password_hash, name, created_at, updated_at, last_login_at, is_active
+		FROM users
+		WHERE email = $1
+	`
+	user := &entity.User{}
+	err := r.db.QueryRowContext(ctx, query, email).Scan(
+		&user.ID,
+		&user.Email,
+		&user.PasswordHash,
+		&user.Name,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+		&user.LastLoginAt,
+		&user.IsActive,
+	)
+
+	if err == sql.ErrNoRows {
+		return nil, errors.New("user not found")
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (r *UserRepositoryImpl) Update(ctx context.Context, user *entity.User) error {
+	query := `
+		UPDATE users
+		SET name = $1, updated_at = $2, last_login_at = $3
+		WHERE id = $4
+	`
+	_, err := r.db.ExecContext(ctx, query,
+		user.Name,
+		user.UpdatedAt,
+		user.LastLoginAt,
+		user.ID,
+	)
+	return err
+}
+
+func (r *UserRepositoryImpl) ExistsByEmail(ctx context.Context, email string) (bool, error) {
+	query := `SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)`
+	var exists bool
+	err := r.db.QueryRowContext(ctx, query, email).Scan(&exists)
+	return exists, err
+}

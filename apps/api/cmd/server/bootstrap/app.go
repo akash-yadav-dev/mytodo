@@ -12,12 +12,14 @@ type App struct {
 
 func NewApp() (*App, error) {
 
+	config := LoadConfig()
+
 	logger, err := NewLogger()
 	if err != nil {
 		return nil, err
 	}
 
-	container, err := NewContainer(logger)
+	container, err := NewContainer(logger, config)
 	if err != nil {
 		return nil, err
 	}
