@@ -5,6 +5,11 @@
 
 package service
 
+import (
+	"mytodo/apps/api/internal/users/domain/entity"
+	"mytodo/apps/api/internal/users/domain/repository"
+)
+
 // UserService handles user management business logic.
 //
 // In production applications, user services typically implement:
@@ -31,3 +36,41 @@ package service
 //
 //   err := userService.ValidateUsername("johndoe")
 //   // Returns: ErrUsernameTaken if already exists, nil otherwise
+
+type UserService interface {
+	GetUser(id string) (*entity.User, error)
+	UpdateUser(id string, name string) (*entity.User, error)
+	DeactivateUser(id string) error
+	SearchUsers(query string) ([]*entity.User, error)
+	ListUsers() ([]*entity.User, error)
+}
+
+type UserServiceImpl struct {
+	userRepo repository.UserRepository
+}
+
+func NewUserService(userRepo repository.UserRepository) UserService {
+	return &UserServiceImpl{
+		userRepo: userRepo,
+	}
+}
+
+func (s *UserServiceImpl) GetUser(id string) (*entity.User, error) {
+	return nil, nil
+}
+
+func (s *UserServiceImpl) UpdateUser(id string, name string) (*entity.User, error) {
+	return nil, nil
+}
+
+func (s *UserServiceImpl) DeactivateUser(id string) error {
+	return nil
+}
+
+func (s *UserServiceImpl) SearchUsers(query string) ([]*entity.User, error) {
+	return nil, nil
+}
+
+func (s *UserServiceImpl) ListUsers() ([]*entity.User, error) {
+	return nil, nil
+}

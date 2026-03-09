@@ -5,6 +5,11 @@ import (
 	authPersistence "mytodo/apps/api/internal/auth/infrastructure/persistence"
 	authGrpc "mytodo/apps/api/internal/auth/interfaces/grpc"
 	authHttp "mytodo/apps/api/internal/auth/interfaces/http"
+
+	userHandlers "mytodo/apps/api/internal/users/application/handlers"
+	userPersistence "mytodo/apps/api/internal/users/infrastructure/persistence"
+	userHttp "mytodo/apps/api/internal/users/interfaces/http"
+
 	"mytodo/apps/api/pkg/cache/redis"
 	"mytodo/apps/api/pkg/database/postgres"
 	"mytodo/apps/api/pkg/security"
@@ -20,6 +25,7 @@ type Container struct {
 	AuthService     *authService.AuthService
 	AuthController  *authHttp.AuthController
 	AuthGrpcServer  *authGrpc.AuthServer
+	UserController  *userHttp.UserController
 }
 
 func NewContainer(logger Logger, cfg *Config) (*Container, error) {
@@ -39,14 +45,29 @@ func NewContainer(logger Logger, cfg *Config) (*Container, error) {
 	passwordService := security.NewPasswordService()
 
 	// Initialize repositories
-	userRepo := authPersistence.NewUserRepository(db.DB)
+	authUserRepo := authPersistence.NewUserRepository(db.DB)
 	sessionRepo := authPersistence.NewSessionRepository(db.DB)
+	userProfileRepo := userPersistence.NewUserRepository(db.DB)
 
 	// Initialize auth service
-	authSvc := authService.NewAuthService(userRepo, sessionRepo, jwtService, passwordService)
+	authSvc := authService.NewAuthService(authUserRepo, sessionRepo, jwtService, passwordService)
+
+	// Initialize user handlers and controller
+	userQueryHandler := userHandlers.NewUserQueryHandler(userProfileRepo)
+	userCommandHandler := userHandlers.NewUserCommandHandler(userProfileRepo)
+	userController := userHttp.NewUserController(userQueryHandler, userCommandHandler)
+
+	registrationSvc := authService.NewUserRegistrationService(
+		authSvc,
+		userCommandHandler,
+		authUserRepo,
+		sessionRepo,
+		jwtService,
+		passwordService,
+	)
 
 	// Initialize controllers
-	authController := authHttp.NewAuthController(authSvc)
+	authController := authHttp.NewAuthController(authSvc, registrationSvc)
 
 	// Initialize gRPC servers
 	authGrpcServer := authGrpc.NewAuthServer(authSvc)
@@ -61,5 +82,6 @@ func NewContainer(logger Logger, cfg *Config) (*Container, error) {
 		AuthService:     authSvc,
 		AuthController:  authController,
 		AuthGrpcServer:  authGrpcServer,
+		UserController:  userController,
 	}, nil
 }

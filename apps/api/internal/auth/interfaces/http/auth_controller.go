@@ -27,6 +27,7 @@
 package http
 
 import (
+	"mytodo/apps/api/internal/auth/domain/entity"
 	"mytodo/apps/api/internal/auth/domain/service"
 	"mytodo/apps/api/internal/auth/interfaces/dto"
 	"net/http"
@@ -37,12 +38,14 @@ import (
 
 // AuthController handles HTTP endpoints for authentication operations.
 type AuthController struct {
-	authService *service.AuthService
+	authService         *service.AuthService
+	registrationService *service.UserRegistrationService
 }
 
-func NewAuthController(authService *service.AuthService) *AuthController {
+func NewAuthController(authService *service.AuthService, registrationService *service.UserRegistrationService) *AuthController {
 	return &AuthController{
-		authService: authService,
+		authService:         authService,
+		registrationService: registrationService,
 	}
 }
 
@@ -55,21 +58,37 @@ func (h *AuthController) Register(c *gin.Context) {
 		return
 	}
 
-	user, err := h.authService.RegisterUser(c.Request.Context(), req.Email, req.Password, req.Name)
+	var user *entity.User
+	var tokens *service.AuthTokens
+	var err error
+
+	if h.registrationService != nil {
+		user, tokens, err = h.registrationService.RegisterUserWithProfile(
+			c.Request.Context(),
+			req.Email,
+			req.Password,
+			req.Name,
+			c.Request.UserAgent(),
+			c.ClientIP(),
+		)
+	} else {
+		user, err = h.authService.RegisterUser(c.Request.Context(), req.Email, req.Password, req.Name)
+		if err == nil {
+			_, tokens, err = h.authService.AuthenticateUser(
+				c.Request.Context(),
+				req.Email,
+				req.Password,
+				c.Request.UserAgent(),
+				c.ClientIP(),
+			)
+		}
+	}
+
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	// Automatically login after registration
-	_, tokens, err := h.authService.AuthenticateUser(
-		c.Request.Context(),
-		req.Email,
-		req.Password,
-		c.Request.UserAgent(),
-		c.ClientIP(),
-	)
-	if err != nil {
+	if tokens == nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "registration succeeded but login failed"})
 		return
 	}

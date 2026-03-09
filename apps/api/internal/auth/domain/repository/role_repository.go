@@ -18,3 +18,18 @@ package repository
 // - AddPermission(roleID, permissionID) - add permission to role
 // - RemovePermission(roleID, permissionID) - remove permission from role
 // - FindSystemRoles() - get built-in system roles
+
+// type RoleRepository interface {
+// 	FindByID(id string) (*Role, error)
+// 	FindByName(name string) (*Role, error)
+// 	Create(role *Role) error
+// 	Update(role *Role) error
+// 	Delete(id string) error
+// 	List() ([]*Role, error)
+// 	FindByUserID(userID string) ([]*Role, error)
+// 	AssignToUser(userID, roleID string) error
+// 	RemoveFromUser(userID, roleID string) error
+// 	AddPermission(roleID, permissionID string) error
+// 	RemovePermission(roleID, permissionID string) error
+// 	FindSystemRoles() ([]*Role, error)
+// }

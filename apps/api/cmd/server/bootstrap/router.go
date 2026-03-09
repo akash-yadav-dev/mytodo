@@ -3,7 +3,8 @@ package bootstrap
 import (
 	"net/http"
 
-	authhttp "mytodo/apps/api/internal/auth/interfaces/http"
+	authRoutes "mytodo/apps/api/internal/auth/interfaces/http"
+	userRoutes "mytodo/apps/api/internal/users/interfaces/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -24,9 +25,14 @@ func SetupRouter(container *Container) *gin.Engine {
 	// API v1 routes
 	v1 := router.Group("/api/v1")
 
-	authhttp.RegisterAuthRoutes(
+	authRoutes.RegisterAuthRoutes(
 		v1,
 		container.AuthController,
+		container.JWTService,
+	)
+	userRoutes.RegisterUserRoutes(
+		v1,
+		container.UserController,
 		container.JWTService,
 	)
 

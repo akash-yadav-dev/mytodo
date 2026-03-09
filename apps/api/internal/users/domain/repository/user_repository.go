@@ -5,36 +5,28 @@
 
 package repository
 
-// UserRepository defines data access methods for user entities.
-//
-// In production applications, user repositories typically provide:
-// - CRUD operations (Create, Read, Update, Delete)
-// - Query methods (FindByID, FindByEmail, FindByUsername)
-// - Search and filtering with pagination
-// - Existence checks for uniqueness validation
-// - Bulk operations for efficiency
-//
-// Example interface:
-//   type UserRepository interface {
-//       Create(user *User) error
-//       FindByID(id string) (*User, error)
-//       FindByEmail(email string) (*User, error)
-//       FindByUsername(username string) (*User, error)
-//       Update(user *User) error
-//       Delete(id string) error
-//       List(filters Filters, pagination Pagination) ([]User, int, error)
-//       ExistsByEmail(email string) (bool, error)
-//       ExistsByUsername(username string) (bool, error)
-//       Search(query string, limit int) ([]User, error)
-//   }
-//
-// Example usage:
-//   user, err := repo.FindByEmail("user@example.com")
-//   // Returns: &User{ID: "123", Email: "user@example.com", ...}, nil
-//   // Returns: nil, ErrUserNotFound if not found
-//
-//   exists, _ := repo.ExistsByUsername("johndoe")
-//   // Returns: true if username exists, false otherwise
-//
-//   users, total, err := repo.List(Filters{Status: "active"}, Pagination{Page: 1, Limit: 20})
-//   // Returns: []User{...}, 150 (total count), nil
+import (
+	"context"
+	"mytodo/apps/api/internal/users/domain/entity"
+
+	"github.com/google/uuid"
+)
+
+// UserRepository defines data access methods for user profile entities.
+type UserRepository interface {
+	// Profile operations
+	CreateProfile(ctx context.Context, user *entity.User) error
+	FindProfileByID(ctx context.Context, id uuid.UUID) (*entity.User, error)
+	FindProfileByUserID(ctx context.Context, userID uuid.UUID) (*entity.User, error)
+	FindProfileByUsername(ctx context.Context, username string) (*entity.User, error)
+	UpdateProfile(ctx context.Context, user *entity.User) error
+	DeleteProfile(ctx context.Context, userID uuid.UUID) error
+	ListProfiles(ctx context.Context, page, limit int) ([]*entity.User, int, error)
+	ExistsByUsername(ctx context.Context, username string) (bool, error)
+	SearchProfiles(ctx context.Context, query string, limit int) ([]*entity.User, error)
+
+	// Preference operations
+	CreatePreferences(ctx context.Context, pref *entity.Preference) error
+	FindPreferencesByUserID(ctx context.Context, userID uuid.UUID) (*entity.Preference, error)
+	UpdatePreferences(ctx context.Context, pref *entity.Preference) error
+}

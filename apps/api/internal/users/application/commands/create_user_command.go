@@ -4,21 +4,31 @@
 
 package commands
 
-// CreateUserCommand represents a request to create a new user.
-//
-// Example structure:
-//   type CreateUserCommand struct {
-//       Email       string `json:"email" validate:"required,email"`
-//       Username    string `json:"username" validate:"required,min=3,max=30"`
-//       DisplayName string `json:"display_name" validate:"required"`
-//       Avatar      string `json:"avatar,omitempty"`
-//   }
-//
-// Example usage:
-//   cmd := CreateUserCommand{
-//       Email:       "john@example.com",
-//       Username:    "johndoe",
-//       DisplayName: "John Doe",
-//   }
-//   result, err := handler.Handle(cmd)
-//   // Returns: &User{ID: "uuid", Email: "john@example.com",...}, nil
+import "errors"
+
+// CreateUserProfileCommand represents a request to create a new user profile.
+type CreateUserProfileCommand struct {
+	AuthUserID  string `json:"auth_user_id" validate:"required"`
+	Username    string `json:"username" validate:"omitempty,min=3,max=30"`
+	DisplayName string `json:"display_name" validate:"required,min=1,max=100"`
+	AvatarURL   string `json:"avatar_url,omitempty"`
+}
+
+// Validate validates the create user profile command
+func (c CreateUserProfileCommand) Validate() error {
+	if c.AuthUserID == "" {
+		return errors.New("auth_user_id is required")
+	}
+	if c.DisplayName == "" {
+		return errors.New("display_name is required")
+	}
+	if len(c.DisplayName) > 100 {
+		return errors.New("display_name must not exceed 100 characters")
+	}
+	if c.Username != "" {
+		if len(c.Username) < 3 || len(c.Username) > 30 {
+			return errors.New("username must be between 3 and 30 characters")
+		}
+	}
+	return nil
+}

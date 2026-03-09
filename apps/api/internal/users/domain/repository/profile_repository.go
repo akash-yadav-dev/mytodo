@@ -4,6 +4,8 @@
 
 package repository
 
+import "mytodo/apps/api/internal/users/domain/entity"
+
 // ProfileRepository defines data access methods for profile entities.
 //
 // In production applications, profile repositories typically provide:
@@ -13,12 +15,13 @@ package repository
 // - Delete profile (cascade on user deletion)
 //
 // Example interface:
-//   type ProfileRepository interface {
-//       Create(profile *Profile) error
-//       FindByUserID(userID string) (*Profile, error)
-//       Update(profile *Profile) error
-//       Delete(userID string) error
-//   }
+type UserProfileRepository interface {
+	Create(profile *entity.Profile) error
+	FindByUserID(userID string) (*entity.Profile, error)
+	Update(profile *entity.Profile) error
+	Delete(userID string) error
+}
+
 //
 // Example usage:
 //   profile, err := repo.FindByUserID("user-123")
