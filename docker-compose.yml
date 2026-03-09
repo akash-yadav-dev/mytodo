@@ -102,43 +102,41 @@ services:
       timeout: 20s
       retries: 3
 
-  # API Server (Go backend) - Uncomment when ready
-  # api:
-  #   build:
-  #     context: .
-  #     dockerfile: infrastructure/docker/api/Dockerfile
-  #   container_name: mytodo-api
-  #   environment:
-  #     - ENV=development
-  #     - DB_HOST=postgres
-  #     - DB_PORT=5432
-  #     - DB_USER=mytodo
-  #     - DB_PASSWORD=mytodo_dev_password
-  #     - DB_NAME=mytodo_dev
-  #     - REDIS_HOST=redis
-  #     - REDIS_PORT=6379
-  #     - REDIS_PASSWORD=mytodo_redis_password
-  #     - ELASTICSEARCH_URL=http://elasticsearch:9200
-  #     - NATS_URL=nats://nats:4222
-  #     - MINIO_ENDPOINT=minio:9000
-  #     - MINIO_ACCESS_KEY=minioadmin
-  #     - MINIO_SECRET_KEY=minioadmin123
-  #   ports:
-  #     - "8080:8080"
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     redis:
-  #       condition: service_healthy
-  #     elasticsearch:
-  #       condition: service_healthy
-  #     nats:
-  #       condition: service_healthy
-  #   networks:
-  #     - mytodo-network
-  #   volumes:
-  #     - ./apps/api:/app
-  #   restart: unless-stopped
+  # API Server (Go backend)
+  api:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/api/Dockerfile
+    container_name: mytodo-api
+    environment:
+      - ENV=development
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=mytodo
+      - DB_PASSWORD=mytodo_dev_password
+      - DB_NAME=mytodo_dev
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=mytodo_redis_password
+      - REDIS_DB=0
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - NATS_URL=nats://nats:4222
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minioadmin
+      - MINIO_SECRET_KEY=minioadmin123
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      # nats:
+      #   condition: service_healthy
+    networks:
+      - mytodo-network
+    restart: unless-stopped
 
   # Web Frontend (Next.js) - Uncomment when ready
   # web:
