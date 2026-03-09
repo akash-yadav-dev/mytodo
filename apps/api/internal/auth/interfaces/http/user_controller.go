@@ -15,3 +15,7 @@ package http
 // - DELETE /users/:id/roles/:roleId - remove role from user
 // - GET /users/search - search users
 // - PATCH /users/:id/password - change password
+
+type UserController struct {
+	// userService *service.UserService // Inject user service for business logic
+}

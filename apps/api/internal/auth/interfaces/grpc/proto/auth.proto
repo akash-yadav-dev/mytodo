@@ -1,0 +1,116 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "mytodo/apps/api/internal/auth/interfaces/grpc/pb";
+
+// AuthService provides authentication and authorization operations
+service AuthService {
+  // Login authenticates a user and returns access tokens
+  rpc Login(LoginRequest) returns (LoginResponse);
+  
+  // Register creates a new user account
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  
+  // RefreshToken generates a new access token using a refresh token
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+  
+  // Logout revokes the user's session
+  rpc Logout(LogoutRequest) returns (LogoutResponse);
+  
+  // ValidateToken verifies an access token (for inter-service auth)
+  rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+  
+  // GetCurrentUser retrieves the authenticated user's information
+  rpc GetCurrentUser(GetCurrentUserRequest) returns (GetCurrentUserResponse);
+}
+
+// LoginRequest contains user credentials
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+  string user_agent = 3;
+  string ip_address = 4;
+}
+
+// LoginResponse contains authentication tokens and user info
+message LoginResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  string token_type = 3;
+  int64 expires_in = 4;
+  User user = 5;
+}
+
+// RegisterRequest contains new user registration data
+message RegisterRequest {
+  string email = 1;
+  string password = 2;
+  string name = 3;
+}
+
+// RegisterResponse contains the newly created user and tokens
+message RegisterResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  string token_type = 3;
+  int64 expires_in = 4;
+  User user = 5;
+}
+
+// RefreshTokenRequest contains the refresh token
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+// RefreshTokenResponse contains new access and refresh tokens
+message RefreshTokenResponse {
+  string access_token = 1;
+  string refresh_token = 2;
+  string token_type = 3;
+  int64 expires_in = 4;
+}
+
+// LogoutRequest contains the refresh token to revoke
+message LogoutRequest {
+  string refresh_token = 1;
+}
+
+// LogoutResponse confirms successful logout
+message LogoutResponse {
+  string message = 1;
+}
+
+// ValidateTokenRequest contains the token to validate
+message ValidateTokenRequest {
+  string access_token = 1;
+}
+
+// ValidateTokenResponse contains validation result and user info
+message ValidateTokenResponse {
+  bool valid = 1;
+  string user_id = 2;
+  string email = 3;
+  string error_message = 4;
+}
+
+// GetCurrentUserRequest contains the access token
+message GetCurrentUserRequest {
+  string access_token = 1;
+}
+
+// GetCurrentUserResponse contains user information
+message GetCurrentUserResponse {
+  User user = 1;
+}
+
+// User represents user information
+message User {
+  string id = 1;
+  string email = 2;
+  string name = 3;
+  string created_at = 4;
+  string updated_at = 5;
+  string last_login_at = 6;
+  bool is_active = 7;
+}
