@@ -23,13 +23,13 @@ func NewOrganizationRepository(db *sql.DB) repository.OrganizationRepository {
 func (r *OrganizationRepositoryImpl) CreateOrganization(ctx context.Context, org *entity.Organization) error {
 
 	query := `
-		INSERT INTO organizations (id, name, slug, description, plan_id, owner_id, is_active, is_deleted, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		INSERT INTO organizations (id, name, slug, description, plan_id, owner_id, is_active, is_deleted, created_by, updated_by, created_at, updated_at, deleted_by, deleted_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
 	`
 
 	_, err := r.db.ExecContext(ctx, query,
 		org.ID, org.Name, org.Slug, org.Description, org.PlanID,
-		org.OwnerID, org.IsActive, org.IsDeleted, org.CreatedAt, org.UpdatedAt)
+		org.OwnerID, org.IsActive, org.IsDeleted, org.CreatedBy, org.UpdatedBy, org.CreatedAt, org.UpdatedAt, org.DeletedBy, org.DeletedAt)
 	if err != nil {
 		return fmt.Errorf("failed to create organization: %w", err)
 	}
@@ -38,14 +38,16 @@ func (r *OrganizationRepositoryImpl) CreateOrganization(ctx context.Context, org
 
 func (r *OrganizationRepositoryImpl) GetOrganizationByID(ctx context.Context, id uuid.UUID) (*entity.Organization, error) {
 	query := `
-		SELECT id, name, slug, description, plan_id, owner_id, is_active, is_deleted, created_at, updated_at, deleted_at
+		SELECT id, name, slug, description, plan_id, owner_id, is_active, is_deleted, 
+		       created_by, updated_by, created_at, updated_at, deleted_by, deleted_at
 		FROM organizations 
 		WHERE id = $1 AND is_deleted = false
 	`
 	org := &entity.Organization{}
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&org.ID, &org.Name, &org.Slug, &org.Description, &org.PlanID,
-		&org.OwnerID, &org.IsActive, &org.IsDeleted, &org.CreatedAt, &org.UpdatedAt, &org.DeletedAt)
+		&org.OwnerID, &org.IsActive, &org.IsDeleted,
+		&org.CreatedBy, &org.UpdatedBy, &org.CreatedAt, &org.UpdatedAt, &org.DeletedBy, &org.DeletedAt)
 
 	if err == sql.ErrNoRows {
 		return nil, errors.New("organization not found")
@@ -84,14 +86,14 @@ func (r *OrganizationRepositoryImpl) UpdateOrganization(ctx context.Context, org
 	return nil
 }
 
-func (r *OrganizationRepositoryImpl) DeleteOrganization(ctx context.Context, id uuid.UUID) error {
+func (r *OrganizationRepositoryImpl) DeleteOrganization(ctx context.Context, id uuid.UUID, deletedBy uuid.UUID) error {
 	query := `
 		UPDATE organizations 
-		SET is_deleted = true, deleted_at = NOW(), updated_at = NOW()
+		SET is_deleted = true, deleted_at = NOW(), updated_at = NOW(), deleted_by = $2
 		WHERE id = $1 AND is_deleted = false
 	`
 
-	result, err := r.db.ExecContext(ctx, query, id)
+	result, err := r.db.ExecContext(ctx, query, id, deletedBy)
 	if err != nil {
 		return fmt.Errorf("failed to delete organization: %w", err)
 	}
@@ -145,7 +147,8 @@ func (r *OrganizationRepositoryImpl) ListOrganizations(ctx context.Context, page
 
 	// Get paginated results
 	query := `
-		SELECT id, name, slug, description, plan_id, owner_id, is_active, is_deleted, created_at, updated_at, deleted_at
+		SELECT id, name, slug, description, plan_id, owner_id, is_active, is_deleted, 
+		       created_by, updated_by, created_at, updated_at, deleted_by, deleted_at
 		FROM organizations 
 		WHERE is_deleted = false
 		ORDER BY created_at DESC
@@ -163,7 +166,8 @@ func (r *OrganizationRepositoryImpl) ListOrganizations(ctx context.Context, page
 		org := &entity.Organization{}
 		err := rows.Scan(
 			&org.ID, &org.Name, &org.Slug, &org.Description, &org.PlanID,
-			&org.OwnerID, &org.IsActive, &org.IsDeleted, &org.CreatedAt, &org.UpdatedAt, &org.DeletedAt)
+			&org.OwnerID, &org.IsActive, &org.IsDeleted,
+			&org.CreatedBy, &org.UpdatedBy, &org.CreatedAt, &org.UpdatedAt, &org.DeletedBy, &org.DeletedAt)
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to scan organization: %w", err)
 		}
@@ -179,7 +183,8 @@ func (r *OrganizationRepositoryImpl) ListOrganizations(ctx context.Context, page
 
 func (r *OrganizationRepositoryImpl) SearchOrganizations(ctx context.Context, query string, limit int) ([]*entity.Organization, error) {
 	searchQuery := `
-		SELECT id, name, slug, description, plan_id, owner_id, is_active, is_deleted, created_at, updated_at, deleted_at
+		SELECT id, name, slug, description, plan_id, owner_id, is_active, is_deleted, 
+		       created_by, updated_by, created_at, updated_at, deleted_by, deleted_at
 		FROM organizations 
 		WHERE is_deleted = false 
 		  AND (name ILIKE $1 OR description ILIKE $1 OR slug ILIKE $1)
@@ -199,7 +204,8 @@ func (r *OrganizationRepositoryImpl) SearchOrganizations(ctx context.Context, qu
 		org := &entity.Organization{}
 		err := rows.Scan(
 			&org.ID, &org.Name, &org.Slug, &org.Description, &org.PlanID,
-			&org.OwnerID, &org.IsActive, &org.IsDeleted, &org.CreatedAt, &org.UpdatedAt, &org.DeletedAt)
+			&org.OwnerID, &org.IsActive, &org.IsDeleted,
+			&org.CreatedBy, &org.UpdatedBy, &org.CreatedAt, &org.UpdatedAt, &org.DeletedBy, &org.DeletedAt)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan organization: %w", err)
 		}
@@ -239,7 +245,8 @@ func (r *OrganizationRepositoryImpl) TransferOrganizationOwnership(ctx context.C
 
 func (r *OrganizationRepositoryImpl) GetOrganizationsByOwner(ctx context.Context, ownerID uuid.UUID) ([]*entity.Organization, error) {
 	query := `
-		SELECT id, name, slug, description, plan_id, owner_id, is_active, is_deleted, created_at, updated_at, deleted_at
+		SELECT id, name, slug, description, plan_id, owner_id, is_active, is_deleted, 
+		       created_by, updated_by, created_at, updated_at, deleted_by, deleted_at
 		FROM organizations 
 		WHERE owner_id = $1 AND is_deleted = false
 		ORDER BY created_at DESC
@@ -256,7 +263,8 @@ func (r *OrganizationRepositoryImpl) GetOrganizationsByOwner(ctx context.Context
 		org := &entity.Organization{}
 		err := rows.Scan(
 			&org.ID, &org.Name, &org.Slug, &org.Description, &org.PlanID,
-			&org.OwnerID, &org.IsActive, &org.IsDeleted, &org.CreatedAt, &org.UpdatedAt, &org.DeletedAt)
+			&org.OwnerID, &org.IsActive, &org.IsDeleted,
+			&org.CreatedBy, &org.UpdatedBy, &org.CreatedAt, &org.UpdatedAt, &org.DeletedBy, &org.DeletedAt)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan organization: %w", err)
 		}
@@ -289,7 +297,8 @@ func (r *OrganizationRepositoryImpl) GetMemberOrganizations(ctx context.Context,
 	// Get paginated results
 	query := `
 		SELECT DISTINCT o.id, o.name, o.slug, o.description, o.plan_id, o.owner_id, 
-		       o.is_active, o.is_deleted, o.created_at, o.updated_at, o.deleted_at
+		       o.is_active, o.is_deleted, o.created_by, o.updated_by, 
+		       o.created_at, o.updated_at, o.deleted_by, o.deleted_at
 		FROM organizations o
 		INNER JOIN organization_members om ON o.id = om.organization_id
 		WHERE om.user_id = $1 AND o.is_deleted = false
@@ -308,7 +317,8 @@ func (r *OrganizationRepositoryImpl) GetMemberOrganizations(ctx context.Context,
 		org := &entity.Organization{}
 		err := rows.Scan(
 			&org.ID, &org.Name, &org.Slug, &org.Description, &org.PlanID,
-			&org.OwnerID, &org.IsActive, &org.IsDeleted, &org.CreatedAt, &org.UpdatedAt, &org.DeletedAt)
+			&org.OwnerID, &org.IsActive, &org.IsDeleted,
+			&org.CreatedBy, &org.UpdatedBy, &org.CreatedAt, &org.UpdatedAt, &org.DeletedBy, &org.DeletedAt)
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to scan organization: %w", err)
 		}

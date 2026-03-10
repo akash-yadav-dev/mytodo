@@ -23,7 +23,7 @@ func (h *OrganizationCommandHandler) HandleCreateOrganization(ctx context.Contex
 		return nil, err
 	}
 
-	org, err := h.organizationService.CreateOrganization(ctx, cmd.OwnerID, cmd.Name, cmd.Slug, cmd.Description, cmd.PlanID)
+	org, err := h.organizationService.CreateOrganization(ctx, cmd.OwnerID, cmd.Name, cmd.Slug, cmd.Description, cmd.PlanID, cmd.CreatedBy.String())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create organization: %w", err)
 	}
@@ -70,7 +70,7 @@ func (h *OrganizationCommandHandler) HandleDeleteOrganization(ctx context.Contex
 		return err
 	}
 
-	if err := h.organizationService.DeleteOrganization(ctx, cmd.OrgID); err != nil {
+	if err := h.organizationService.DeleteOrganization(ctx, cmd.OrgID, cmd.DeletedBy); err != nil {
 		return fmt.Errorf("failed to delete organization: %w", err)
 	}
 

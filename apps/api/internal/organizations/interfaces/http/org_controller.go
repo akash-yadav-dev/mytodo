@@ -61,6 +61,7 @@ func (c *OrganizationController) CreateOrganization(ctx *gin.Context) {
 
 	cmd := commands.CreateOrganizationCommand{
 		OwnerID:     userID,
+		CreatedBy:   userID,
 		Name:        req.Name,
 		Slug:        req.Slug,
 		Description: req.Description,

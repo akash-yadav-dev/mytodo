@@ -9,6 +9,7 @@ import (
 
 type CreateOrganizationCommand struct {
 	OwnerID     uuid.UUID
+	CreatedBy   uuid.UUID
 	Name        string `json:"name" binding:"required"`
 	Slug        string `json:"slug,omitempty"`
 	Description string `json:"description,omitempty"`
@@ -18,6 +19,10 @@ type CreateOrganizationCommand struct {
 func (c CreateOrganizationCommand) Validate() error {
 	if c.OwnerID == uuid.Nil {
 		return errors.New("owner ID is required")
+	}
+
+	if c.CreatedBy == uuid.Nil {
+		return errors.New("created by is required")
 	}
 
 	if strings.TrimSpace(c.Name) == "" {

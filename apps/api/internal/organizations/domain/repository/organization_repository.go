@@ -12,7 +12,7 @@ type OrganizationRepository interface {
 	CreateOrganization(ctx context.Context, org *entity.Organization) error
 	GetOrganizationByID(ctx context.Context, id uuid.UUID) (*entity.Organization, error)
 	UpdateOrganization(ctx context.Context, org *entity.Organization) error
-	DeleteOrganization(ctx context.Context, id uuid.UUID) error
+	DeleteOrganization(ctx context.Context, id uuid.UUID, deletedBy uuid.UUID) error
 	RestoreOrganization(ctx context.Context, id uuid.UUID) error
 	ListOrganizations(ctx context.Context, page, limit int) ([]*entity.Organization, int, error)
 	SearchOrganizations(ctx context.Context, query string, limit int) ([]*entity.Organization, error)

@@ -7,16 +7,17 @@ import (
 	"mytodo/apps/api/internal/organizations/domain/entity"
 	"mytodo/apps/api/internal/organizations/domain/repository"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 )
 
 type OrganizationService interface {
 	// Define methods for organization-related operations
-	CreateOrganization(ctx context.Context, ownerID uuid.UUID, name, slug, description, planID string) (*entity.Organization, error)
+	CreateOrganization(ctx context.Context, ownerID uuid.UUID, name, slug, description, planID, createdBy string) (*entity.Organization, error)
 	GetOrganizationByID(ctx context.Context, id uuid.UUID) (*entity.Organization, error)
-	UpdateOrganization(ctx context.Context, id uuid.UUID, name, slug, description, planID string) (*entity.Organization, error)
-	DeleteOrganization(ctx context.Context, id uuid.UUID) error
+	UpdateOrganization(ctx context.Context, id uuid.UUID, name, slug, description, planID, updatedBy string) (*entity.Organization, error)
+	DeleteOrganization(ctx context.Context, id uuid.UUID, deletedBy uuid.UUID) error
 	RestoreOrganization(ctx context.Context, id uuid.UUID) error
 	ListOrganizations(ctx context.Context, page, limit int) ([]*entity.Organization, int, error)
 	SearchOrganizations(ctx context.Context, query string, limit int) ([]*entity.Organization, error)
@@ -36,10 +37,15 @@ func NewOrganizationService(organizationRepo repository.OrganizationRepository) 
 	}
 }
 
-func (s *OrganizationServiceImpl) CreateOrganization(ctx context.Context, ownerID uuid.UUID, name, slug, description, planID string) (*entity.Organization, error) {
+func (s *OrganizationServiceImpl) CreateOrganization(ctx context.Context, ownerID uuid.UUID, name, slug, description, planID, createdBy string) (*entity.Organization, error) {
 	// Validate owner ID
 	if ownerID == uuid.Nil {
 		return nil, errors.New("owner ID cannot be empty")
+	}
+
+	// Validate createdBy
+	if createdBy == "" {
+		return nil, errors.New("created by cannot be empty")
 	}
 
 	// Generate slug if not provided
@@ -53,10 +59,13 @@ func (s *OrganizationServiceImpl) CreateOrganization(ctx context.Context, ownerI
 	}
 
 	// Create organization entity
-	org, err := entity.NewOrganization(ownerID.String(), name, slug, description, planID)
+	org, err := entity.NewOrganization(ownerID.String(), name, description, planID, createdBy)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create organization entity: %w", err)
 	}
+
+	// Set slug
+	org.Slug = slug
 
 	// Save to repository
 	if err := s.organizationRepo.CreateOrganization(ctx, org); err != nil {
@@ -74,9 +83,13 @@ func (s *OrganizationServiceImpl) GetOrganizationByID(ctx context.Context, id uu
 	return s.organizationRepo.GetOrganizationByID(ctx, id)
 }
 
-func (s *OrganizationServiceImpl) UpdateOrganization(ctx context.Context, id uuid.UUID, name, slug, description, planID string) (*entity.Organization, error) {
+func (s *OrganizationServiceImpl) UpdateOrganization(ctx context.Context, id uuid.UUID, name, slug, description, planID, updatedBy string) (*entity.Organization, error) {
 	if id == uuid.Nil {
 		return nil, errors.New("organization ID cannot be empty")
+	}
+
+	if updatedBy == "" {
+		return nil, errors.New("updated by cannot be empty")
 	}
 
 	// Get existing organization
@@ -87,21 +100,31 @@ func (s *OrganizationServiceImpl) UpdateOrganization(ctx context.Context, id uui
 
 	// Update fields if provided
 	if name != "" {
-		if err := org.UpdateName(name); err != nil {
+		if err := org.UpdateName(name, updatedBy); err != nil {
 			return nil, err
 		}
 	}
 
 	if slug != "" {
-		org.Slug = slug
+		if err := org.UpdateSlug(slug, updatedBy); err != nil {
+			return nil, err
+		}
 	}
 
 	if description != "" {
-		org.Description = description
+		org.UpdateDescription(description, updatedBy)
 	}
 
 	if planID != "" {
-		org.PlanID = planID
+		if err := org.UpdatePlanID(planID, updatedBy); err != nil {
+			return nil, err
+		}
+	}
+
+	// If nothing was updated but updatedBy was provided, still update the timestamp
+	if name == "" && slug == "" && description == "" && planID == "" {
+		org.UpdatedBy = updatedBy
+		org.UpdatedAt = time.Now().UTC()
 	}
 
 	// Save changes
@@ -112,12 +135,16 @@ func (s *OrganizationServiceImpl) UpdateOrganization(ctx context.Context, id uui
 	return org, nil
 }
 
-func (s *OrganizationServiceImpl) DeleteOrganization(ctx context.Context, id uuid.UUID) error {
+func (s *OrganizationServiceImpl) DeleteOrganization(ctx context.Context, id uuid.UUID, deletedBy uuid.UUID) error {
 	if id == uuid.Nil {
 		return errors.New("organization ID cannot be empty")
 	}
 
-	return s.organizationRepo.DeleteOrganization(ctx, id)
+	if deletedBy == uuid.Nil {
+		return errors.New("deleted by cannot be empty")
+	}
+
+	return s.organizationRepo.DeleteOrganization(ctx, id, deletedBy)
 }
 
 func (s *OrganizationServiceImpl) RestoreOrganization(ctx context.Context, id uuid.UUID) error {
