@@ -57,7 +57,7 @@ func (h *OrganizationCommandHandler) HandleUpdateOrganization(ctx context.Contex
 		planID = *cmd.PlanID
 	}
 
-	org, err := h.organizationService.UpdateOrganization(ctx, cmd.OrgID, name, slug, description, planID)
+	org, err := h.organizationService.UpdateOrganization(ctx, cmd.OrgID, name, slug, description, planID, cmd.UpdatedBy.String())
 	if err != nil {
 		return nil, fmt.Errorf("failed to update organization: %w", err)
 	}
