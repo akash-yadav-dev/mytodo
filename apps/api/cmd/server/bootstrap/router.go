@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	authRoutes "mytodo/apps/api/internal/auth/interfaces/http"
+	orgRoutes "mytodo/apps/api/internal/organizations/interfaces/http"
 	userRoutes "mytodo/apps/api/internal/users/interfaces/http"
 
 	"github.com/gin-gonic/gin"
@@ -33,6 +34,16 @@ func SetupRouter(container *Container) *gin.Engine {
 	userRoutes.RegisterUserRoutes(
 		v1,
 		container.UserController,
+		container.JWTService,
+	)
+	orgRoutes.RegisterOrganizationRoutes(
+		v1,
+		container.OrgController,
+		container.JWTService,
+	)
+	orgRoutes.RegisterMemberRoutes(
+		v1,
+		container.MemberController,
 		container.JWTService,
 	)
 

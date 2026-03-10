@@ -6,43 +6,20 @@
 package service
 
 import (
+	"context"
+	"errors"
 	"mytodo/apps/api/internal/users/domain/entity"
 	"mytodo/apps/api/internal/users/domain/repository"
+
+	"github.com/google/uuid"
 )
 
-// UserService handles user management business logic.
-//
-// In production applications, user services typically implement:
-// - User creation with validation
-// - Profile updates with business rules
-// - User search and filtering
-// - Username/email uniqueness validation
-// - User deactivation workflows
-// - Bulk user operations
-//
-// Example interface:
-//   type UserService interface {
-//       CreateUser(email, username, name string) (*User, error)
-//       UpdateUser(id string, updates UserUpdates) (*User, error)
-//       GetUser(id string) (*User, error)
-//       SearchUsers(query string, filters Filters) ([]User, error)
-//       DeactivateUser(id string) error
-//       ValidateUsername(username string) error
-//   }
-//
-// Example usage:
-//   user, err := userService.CreateUser("user@example.com", "johndoe", "John Doe")
-//   // Returns: &User{ID: "uuid-123", Email: "user@example.com", ...}, nil
-//
-//   err := userService.ValidateUsername("johndoe")
-//   // Returns: ErrUsernameTaken if already exists, nil otherwise
-
 type UserService interface {
-	GetUser(id string) (*entity.User, error)
-	UpdateUser(id string, name string) (*entity.User, error)
-	DeactivateUser(id string) error
-	SearchUsers(query string) ([]*entity.User, error)
-	ListUsers() ([]*entity.User, error)
+	GetProfileByUserID(ctx context.Context, userID uuid.UUID) (*entity.User, error)
+	GetProfileByID(ctx context.Context, profileID uuid.UUID) (*entity.User, error)
+	ListProfiles(ctx context.Context, page, limit int) ([]*entity.User, int, error)
+	SearchProfiles(ctx context.Context, query string, limit int) ([]*entity.User, error)
+	GetPreferencesByUserID(ctx context.Context, userID uuid.UUID) (*entity.Preference, error)
 }
 
 type UserServiceImpl struct {
@@ -55,22 +32,31 @@ func NewUserService(userRepo repository.UserRepository) UserService {
 	}
 }
 
-func (s *UserServiceImpl) GetUser(id string) (*entity.User, error) {
-	return nil, nil
+func (s *UserServiceImpl) GetProfileByUserID(ctx context.Context, userID uuid.UUID) (*entity.User, error) {
+	if userID == uuid.Nil {
+		return nil, errors.New("user id is required")
+	}
+	return s.userRepo.FindProfileByUserID(ctx, userID)
 }
 
-func (s *UserServiceImpl) UpdateUser(id string, name string) (*entity.User, error) {
-	return nil, nil
+func (s *UserServiceImpl) GetProfileByID(ctx context.Context, profileID uuid.UUID) (*entity.User, error) {
+	if profileID == uuid.Nil {
+		return nil, errors.New("profile id is required")
+	}
+	return s.userRepo.FindProfileByID(ctx, profileID)
 }
 
-func (s *UserServiceImpl) DeactivateUser(id string) error {
-	return nil
+func (s *UserServiceImpl) ListProfiles(ctx context.Context, page, limit int) ([]*entity.User, int, error) {
+	return s.userRepo.ListProfiles(ctx, page, limit)
 }
 
-func (s *UserServiceImpl) SearchUsers(query string) ([]*entity.User, error) {
-	return nil, nil
+func (s *UserServiceImpl) SearchProfiles(ctx context.Context, query string, limit int) ([]*entity.User, error) {
+	return s.userRepo.SearchProfiles(ctx, query, limit)
 }
 
-func (s *UserServiceImpl) ListUsers() ([]*entity.User, error) {
-	return nil, nil
+func (s *UserServiceImpl) GetPreferencesByUserID(ctx context.Context, userID uuid.UUID) (*entity.Preference, error) {
+	if userID == uuid.Nil {
+		return nil, errors.New("user id is required")
+	}
+	return s.userRepo.FindPreferencesByUserID(ctx, userID)
 }

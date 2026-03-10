@@ -9,7 +9,7 @@ import (
 	"errors"
 	"mytodo/apps/api/internal/users/application/commands"
 	"mytodo/apps/api/internal/users/domain/entity"
-	"mytodo/apps/api/internal/users/domain/repository"
+	"mytodo/apps/api/internal/users/domain/service"
 	"mytodo/apps/api/internal/users/interfaces/dto"
 
 	"github.com/google/uuid"
@@ -17,13 +17,13 @@ import (
 
 // UserCommandHandler processes user write operations.
 type UserCommandHandler struct {
-	userRepo repository.UserRepository
+	profileService service.ProfileService
 }
 
 // NewUserCommandHandler creates a new UserCommandHandler
-func NewUserCommandHandler(userRepo repository.UserRepository) *UserCommandHandler {
+func NewUserCommandHandler(profileService service.ProfileService) *UserCommandHandler {
 	return &UserCommandHandler{
-		userRepo: userRepo,
+		profileService: profileService,
 	}
 }
 
@@ -42,11 +42,11 @@ func (h *UserCommandHandler) HandleCreateUserProfile(ctx context.Context, cmd co
 
 	// Step 3: Check if username is already taken (if provided)
 	if cmd.Username != "" {
-		exists, err := h.userRepo.ExistsByUsername(ctx, cmd.Username)
+		available, err := h.profileService.IsUsernameAvailable(ctx, cmd.Username)
 		if err != nil {
 			return nil, err
 		}
-		if exists {
+		if !available {
 			return nil, errors.New("username already taken")
 		}
 	}
@@ -63,13 +63,13 @@ func (h *UserCommandHandler) HandleCreateUserProfile(ctx context.Context, cmd co
 	}
 
 	// Step 5: Save to repository
-	if err := h.userRepo.CreateProfile(ctx, userProfile); err != nil {
+	if err := h.profileService.CreateProfile(ctx, userProfile); err != nil {
 		return nil, err
 	}
 
 	// Step 6: Create default preferences
 	preferences := entity.NewUserPreferences(authUserID)
-	if err := h.userRepo.CreatePreferences(ctx, preferences); err != nil {
+	if err := h.profileService.CreatePreferences(ctx, preferences); err != nil {
 		// Log error but don't fail profile creation
 		// TODO: Add proper logging
 	}
@@ -92,7 +92,7 @@ func (h *UserCommandHandler) HandleUpdateUserProfile(ctx context.Context, cmd co
 	}
 
 	// Step 3: Fetch existing profile
-	userProfile, err := h.userRepo.FindProfileByUserID(ctx, userID)
+	userProfile, err := h.profileService.GetProfileByUserID(ctx, userID)
 	if err != nil {
 		return nil, errors.New("user profile not found")
 	}
@@ -100,11 +100,11 @@ func (h *UserCommandHandler) HandleUpdateUserProfile(ctx context.Context, cmd co
 	// Step 4: Check if new username is already taken
 	if cmd.Username != nil && *cmd.Username != "" {
 		if userProfile.Username == nil || *userProfile.Username != *cmd.Username {
-			exists, err := h.userRepo.ExistsByUsername(ctx, *cmd.Username)
+			available, err := h.profileService.IsUsernameAvailable(ctx, *cmd.Username)
 			if err != nil {
 				return nil, err
 			}
-			if exists {
+			if !available {
 				return nil, errors.New("username already taken")
 			}
 			if err := userProfile.SetUsername(*cmd.Username); err != nil {
@@ -153,7 +153,7 @@ func (h *UserCommandHandler) HandleUpdateUserProfile(ctx context.Context, cmd co
 	}
 
 	// Step 7: Save to repository
-	if err := h.userRepo.UpdateProfile(ctx, userProfile); err != nil {
+	if err := h.profileService.UpdateProfile(ctx, userProfile); err != nil {
 		return nil, err
 	}
 
@@ -175,13 +175,13 @@ func (h *UserCommandHandler) HandleDeleteUserProfile(ctx context.Context, cmd co
 	}
 
 	// Step 3: Check if profile exists
-	_, err = h.userRepo.FindProfileByUserID(ctx, userID)
+	_, err = h.profileService.GetProfileByUserID(ctx, userID)
 	if err != nil {
 		return errors.New("user profile not found")
 	}
 
 	// Step 4: Delete profile (preferences will be cascade deleted)
-	if err := h.userRepo.DeleteProfile(ctx, userID); err != nil {
+	if err := h.profileService.DeleteProfile(ctx, userID); err != nil {
 		return err
 	}
 
@@ -202,7 +202,7 @@ func (h *UserCommandHandler) HandleUpdateUserPreferences(ctx context.Context, cm
 	}
 
 	// Step 3: Fetch existing preferences
-	prefs, err := h.userRepo.FindPreferencesByUserID(ctx, userID)
+	prefs, err := h.profileService.GetPreferencesByUserID(ctx, userID)
 	if err != nil {
 		return nil, errors.New("user preferences not found")
 	}
@@ -217,7 +217,7 @@ func (h *UserCommandHandler) HandleUpdateUserPreferences(ctx context.Context, cm
 	)
 
 	// Step 5: Save to repository
-	if err := h.userRepo.UpdatePreferences(ctx, prefs); err != nil {
+	if err := h.profileService.UpdatePreferences(ctx, prefs); err != nil {
 		return nil, err
 	}
 

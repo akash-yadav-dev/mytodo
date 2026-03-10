@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"mytodo/apps/api/internal/users/application/queries"
-	"mytodo/apps/api/internal/users/domain/repository"
+	"mytodo/apps/api/internal/users/domain/service"
 	"mytodo/apps/api/internal/users/interfaces/dto"
 	"strings"
 
@@ -16,13 +16,13 @@ import (
 
 // UserQueryHandler processes user read operations.
 type UserQueryHandler struct {
-	userRepo repository.UserRepository
+	userService service.UserService
 }
 
 // NewUserQueryHandler creates a new UserQueryHandler
-func NewUserQueryHandler(userRepo repository.UserRepository) *UserQueryHandler {
+func NewUserQueryHandler(userService service.UserService) *UserQueryHandler {
 	return &UserQueryHandler{
-		userRepo: userRepo,
+		userService: userService,
 	}
 }
 
@@ -40,7 +40,7 @@ func (h *UserQueryHandler) HandleGetProfileByID(ctx context.Context, query queri
 	}
 
 	// Step 3: Fetch user profile from repository
-	user, err := h.userRepo.FindProfileByUserID(ctx, userID)
+	user, err := h.userService.GetProfileByUserID(ctx, userID)
 	if err != nil {
 		return nil, errors.New("user profile not found")
 	}
@@ -67,7 +67,7 @@ func (h *UserQueryHandler) HandleGetUserProfileList(ctx context.Context, query q
 	}
 
 	// Step 2: Fetch users from repository
-	users, total, err := h.userRepo.ListProfiles(ctx, query.Page, query.Limit)
+	users, total, err := h.userService.ListProfiles(ctx, query.Page, query.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +95,7 @@ func (h *UserQueryHandler) HandleSearchUserProfiles(ctx context.Context, query q
 	}
 
 	// Step 2: Search users
-	users, err := h.userRepo.SearchProfiles(ctx, query.Query, query.Limit)
+	users, err := h.userService.SearchProfiles(ctx, query.Query, query.Limit)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func (h *UserQueryHandler) HandleSearchUserProfiles(ctx context.Context, query q
 
 // HandleGetUserPreferences retrieves user preferences
 func (h *UserQueryHandler) HandleGetUserPreferences(ctx context.Context, userID uuid.UUID) (*dto.UserPreferencesDTO, error) {
-	prefs, err := h.userRepo.FindPreferencesByUserID(ctx, userID)
+	prefs, err := h.userService.GetPreferencesByUserID(ctx, userID)
 	if err != nil {
 		return nil, errors.New("user preferences not found")
 	}
