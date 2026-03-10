@@ -12,10 +12,23 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+func truncateToken(token string) string {
+	if len(token) <= 20 {
+		return token
+	}
+	return token[:20] + "..."
+}
+
 func main() {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	// Connect to the gRPC server
-	conn, err := grpc.NewClient("localhost:50051",
+	conn, err := grpc.DialContext(
+		ctx,
+		"localhost:50051",
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
+		grpc.WithBlock(),
 	)
 	if err != nil {
 		log.Fatalf("Failed to connect: %v", err)
@@ -23,13 +36,12 @@ func main() {
 	defer conn.Close()
 
 	client := pb.NewAuthServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
 
-	fmt.Println("=== Testing gRPC Auth Service ===\n")
+	fmt.Println("=== Testing gRPC Auth Service ===")
 
 	// Test 1: Register a new user
 	fmt.Println("1. Testing Register...")
+
 	registerReq := &pb.RegisterRequest{
 		Email:    fmt.Sprintf("test%d@example.com", time.Now().Unix()),
 		Password: "password123",
@@ -40,16 +52,17 @@ func main() {
 	if err != nil {
 		fmt.Printf("   ❌ Register failed: %v\n\n", err)
 	} else {
-		fmt.Printf("   ✅ Register successful!\n")
+		fmt.Println("   ✅ Register successful!")
 		fmt.Printf("   User ID: %s\n", registerResp.User.Id)
 		fmt.Printf("   Email: %s\n", registerResp.User.Email)
 		fmt.Printf("   Name: %s\n", registerResp.User.Name)
-		fmt.Printf("   Access Token: %s...\n", registerResp.AccessToken[:20])
-		fmt.Printf("   Refresh Token: %s...\n\n", registerResp.RefreshToken[:20])
+		fmt.Printf("   Access Token: %s\n", truncateToken(registerResp.AccessToken))
+		fmt.Printf("   Refresh Token: %s\n\n", truncateToken(registerResp.RefreshToken))
 	}
 
-	// Test 2: Login with the registered user
+	// Test 2: Login
 	fmt.Println("2. Testing Login...")
+
 	loginReq := &pb.LoginRequest{
 		Email:     registerReq.Email,
 		Password:  registerReq.Password,
@@ -61,16 +74,17 @@ func main() {
 	if err != nil {
 		fmt.Printf("   ❌ Login failed: %v\n\n", err)
 	} else {
-		fmt.Printf("   ✅ Login successful!\n")
+		fmt.Println("   ✅ Login successful!")
 		fmt.Printf("   User ID: %s\n", loginResp.User.Id)
 		fmt.Printf("   Email: %s\n", loginResp.User.Email)
-		fmt.Printf("   Access Token: %s...\n", loginResp.AccessToken[:20])
-		fmt.Printf("   Refresh Token: %s...\n", loginResp.RefreshToken[:20])
+		fmt.Printf("   Access Token: %s\n", truncateToken(loginResp.AccessToken))
+		fmt.Printf("   Refresh Token: %s\n", truncateToken(loginResp.RefreshToken))
 		fmt.Printf("   Token Type: %s\n", loginResp.TokenType)
 		fmt.Printf("   Expires In: %d seconds\n\n", loginResp.ExpiresIn)
 
 		// Test 3: Refresh token
 		fmt.Println("3. Testing RefreshToken...")
+
 		refreshReq := &pb.RefreshTokenRequest{
 			RefreshToken: loginResp.RefreshToken,
 		}
@@ -79,12 +93,13 @@ func main() {
 		if err != nil {
 			fmt.Printf("   ❌ RefreshToken failed: %v\n\n", err)
 		} else {
-			fmt.Printf("   ✅ RefreshToken successful!\n")
-			fmt.Printf("   New Access Token: %s...\n", refreshResp.AccessToken[:20])
-			fmt.Printf("   New Refresh Token: %s...\n\n", refreshResp.RefreshToken[:20])
+			fmt.Println("   ✅ RefreshToken successful!")
+			fmt.Printf("   New Access Token: %s\n", truncateToken(refreshResp.AccessToken))
+			fmt.Printf("   New Refresh Token: %s\n\n", truncateToken(refreshResp.RefreshToken))
 
 			// Test 4: Logout
 			fmt.Println("4. Testing Logout...")
+
 			logoutReq := &pb.LogoutRequest{
 				RefreshToken: refreshResp.RefreshToken,
 			}
@@ -93,7 +108,7 @@ func main() {
 			if err != nil {
 				fmt.Printf("   ❌ Logout failed: %v\n\n", err)
 			} else {
-				fmt.Printf("   ✅ Logout successful!\n")
+				fmt.Println("   ✅ Logout successful!")
 				fmt.Printf("   Message: %s\n\n", logoutResp.Message)
 			}
 		}
@@ -101,6 +116,7 @@ func main() {
 
 	// Test 5: ValidateToken
 	fmt.Println("5. Testing ValidateToken...")
+
 	validateReq := &pb.ValidateTokenRequest{
 		AccessToken: "test-token",
 	}
@@ -109,7 +125,7 @@ func main() {
 	if err != nil {
 		fmt.Printf("   ❌ ValidateToken failed: %v\n\n", err)
 	} else {
-		fmt.Printf("   ℹ️  ValidateToken response:\n")
+		fmt.Println("   ℹ️  ValidateToken response:")
 		fmt.Printf("   Valid: %v\n", validateResp.Valid)
 		fmt.Printf("   Error: %s\n\n", validateResp.ErrorMessage)
 	}
