@@ -1,15 +1,16 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/theme/theme-provider";
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
-  const nextTheme = theme === "light" ? "dark" : "light";
-
+  const { theme, toggle } = useTheme();
   return (
-    <Button variant="ghost" onClick={() => setTheme(nextTheme)}>
-      {theme === "light" ? "Dark mode" : "Light mode"}
-    </Button>
+    <button
+      onClick={toggle}
+      aria-label="Toggle theme"
+      className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-card text-fg/70 transition hover:bg-accentMuted hover:text-accent"
+    >
+      {theme === "dark" ? "☀" : "☾"}
+    </button>
   );
 }

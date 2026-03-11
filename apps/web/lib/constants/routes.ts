@@ -2,6 +2,20 @@ export const ROUTES = {
   home: "/",
   login: "/auth/login",
   register: "/auth/register",
+  forgotPassword: "/auth/forgot-password",
   dashboard: "/dashboard",
+  issues: "/issues",
+  issueDetail: (id: string) => `/issues/${id}`,
+  projects: "/projects",
+  projectDetail: (id: string) => `/projects/${id}`,
+  projectEdit: (id: string) => `/projects/${id}/edit`,
+  boards: "/boards",
+  boardDetail: (id: string) => `/boards/${id}`,
+  organizations: "/organizations",
+  organizationDetail: (id: string) => `/organizations/${id}`,
+  organizationNew: "/organizations/new",
   settings: "/settings",
-};
+  settingsProfile: "/settings/profile",
+  settingsTeam: "/settings/team",
+} as const;
+

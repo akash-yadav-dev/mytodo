@@ -2,7 +2,13 @@
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { AuthSession, AuthUser, LoginPayload, RegisterPayload } from "@/lib/types/auth";
-import { getAccessToken, setAccessToken, clearAccessToken } from "@/services/auth/token";
+import {
+  getAccessToken,
+  setAccessToken,
+  clearAccessToken,
+  setRefreshToken,
+  clearRefreshToken,
+} from "@/services/auth/token";
 import { getStoredSession, setStoredSession, clearStoredSession } from "@/services/auth/session";
 import { fetchCurrentUser, loginUser, registerUser, logoutUser } from "@/services/api/auth";
 
@@ -69,19 +75,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     setStatus("loading");
     try {
-      await logoutUser();
-    } catch {
-      // Ignore API logout errors and clear client session.
-    } finally {
-      clearStoredSession();
-      clearAccessToken();
-      setUser(null);
-      setStatus("guest");
-    }
+        await logoutUser();
+      } catch {
+        // Ignore API logout errors and clear client session.
+      } finally {
+        clearStoredSession();
+        clearAccessToken();
+        clearRefreshToken();
+        setUser(null);
+        setStatus("guest");
+      }
   };
 
   const applySession = (session: AuthSession) => {
     setAccessToken(session.accessToken);
+    if (session.refreshToken) setRefreshToken(session.refreshToken);
     setStoredSession({ user: session.user });
     setUser(session.user);
     setStatus("authenticated");

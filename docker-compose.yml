@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database
   postgres:
@@ -29,7 +27,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: mytodo-redis
-    command: redis-server --appendonly yes --requirepass mytodo_redis_password
+    command: redis-server --appendonly yes --requirepass mytodo_redis_password --bind 0.0.0.0
     ports:
       - "6379:6379"
     volumes:
@@ -37,10 +35,11 @@ services:
     networks:
       - mytodo-network
     healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      test: ["CMD", "redis-cli", "-a", "mytodo_redis_password", "--no-auth-warning", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   # Elasticsearch (for search)
   elasticsearch:
@@ -77,10 +76,11 @@ services:
     networks:
       - mytodo-network
     healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8222/healthz"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8222/healthz || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
+      start_period: 5s
 
   # MinIO (S3-compatible object storage for attachments)
   minio:

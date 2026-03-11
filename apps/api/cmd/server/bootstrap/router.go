@@ -6,6 +6,7 @@ import (
 	authRoutes "mytodo/apps/api/internal/auth/interfaces/http"
 	orgRoutes "mytodo/apps/api/internal/organizations/interfaces/http"
 	userRoutes "mytodo/apps/api/internal/users/interfaces/http"
+	"mytodo/apps/api/pkg/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -17,6 +18,10 @@ func SetupRouter(container *Container) *gin.Engine {
 	// Production middleware
 	router.Use(gin.Recovery())
 	router.Use(gin.Logger())
+
+	// CORS
+	corsConfig := middleware.DefaultCORSConfig()
+	router.Use(middleware.NewCORSMiddleware(corsConfig))
 
 	router.GET("/health", func(c *gin.Context) {
 		container.Log.Info("Health check endpoint called")

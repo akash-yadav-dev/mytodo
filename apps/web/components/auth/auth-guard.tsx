@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/components/auth/auth-provider";
+import { ROUTES } from "@/lib/constants/routes";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { status } = useAuthContext();
@@ -10,14 +11,14 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (status === "guest") {
-      router.replace("/auth/login");
+      router.push(ROUTES.login);
     }
   }, [status, router]);
 
   if (status === "loading") {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center text-sm text-fg/70">
-        Checking your session...
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-6 w-6 animate-spin rounded-full border-2 border-accent border-t-transparent" />
       </div>
     );
   }
