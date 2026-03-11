@@ -38,7 +38,7 @@ export function Dropdown({ trigger, items, align = "right", className }: Dropdow
       {open && (
         <ul
           className={cn(
-            "absolute z-40 mt-2 min-w-[10rem] rounded-2xl border border-border bg-card py-1 shadow-soft",
+            "absolute z-50 mt-2 min-w-[10rem] rounded-2xl border border-border bg-card py-1 shadow-soft",
             align === "right" ? "right-0" : "left-0"
           )}
         >

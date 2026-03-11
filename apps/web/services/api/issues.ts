@@ -59,7 +59,7 @@ export async function updateIssue(
   payload: UpdateIssuePayload
 ): Promise<Issue> {
   return apiFetch<Issue>(`/api/v1/issues/${id}`, {
-    method: "PUT",
+    method: "PATCH",
     body: JSON.stringify(payload),
   });
 }

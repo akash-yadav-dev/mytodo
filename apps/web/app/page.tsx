@@ -3,42 +3,51 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { ROUTES } from "@/lib/constants/routes";
 
+import {
+  FolderKanban,
+  Kanban,
+  Bell,
+  Users,
+  Search,
+  Code2,
+} from "lucide-react";
+
 const features = [
   {
     title: "Project clarity",
     description:
       "Organize work into projects with clear ownership, milestones, and priorities.",
-    icon: "���",
+    icon: FolderKanban,
   },
   {
     title: "Focused execution",
     description:
       "Kanban boards and sprint planning keep the team aligned without overhead.",
-    icon: "���",
+    icon: Kanban,
   },
   {
     title: "Smart notifications",
     description:
       "Stay informed on what matters. Quiet the noise, amplify the signal.",
-    icon: "���",
+    icon: Bell,
   },
   {
     title: "Team collaboration",
     description:
       "Comments, mentions, and real-time updates keep everyone in the loop.",
-    icon: "���",
+    icon: Users,
   },
   {
     title: "Powerful search",
     description:
       "Find any issue, project, or team member instantly with full-text search.",
-    icon: "���",
+    icon: Search,
   },
   {
     title: "Developer-friendly",
     description:
       "REST + gRPC APIs, webhooks, and SDK for seamless integrations.",
-    icon: "⚙️",
+    icon: Code2,
   },
 ];
 
@@ -104,18 +113,23 @@ export default function HomePage() {
             </p>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((feat) => (
-              <div
-                key={feat.title}
-                className="group rounded-3xl border border-border bg-card p-6 shadow-soft transition hover:-translate-y-1 hover:border-accent/40 hover:shadow-lg"
-              >
-                <span className="mb-3 block text-3xl">{feat.icon}</span>
-                <h3 className="mb-2 text-lg font-medium">{feat.title}</h3>
-                <p className="text-sm leading-relaxed text-fg/70">
-                  {feat.description}
-                </p>
-              </div>
-            ))}
+            {features.map((feat) => {
+              const Icon = feat.icon;
+              return (
+                <div
+                  key={feat.title}
+                  className="group rounded-3xl border border-border bg-card p-6 shadow-soft transition hover:-translate-y-1 hover:border-accent/40 hover:shadow-lg"
+                >
+                  <span className="mb-3 block text-3xl">
+                    <Icon size={28} strokeWidth={1.8} />
+                  </span>
+                  <h3 className="mb-2 text-lg font-medium">{feat.title}</h3>
+                  <p className="text-sm leading-relaxed text-fg/70">
+                    {feat.description}
+                  </p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

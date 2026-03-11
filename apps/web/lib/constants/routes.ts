@@ -17,5 +17,7 @@ export const ROUTES = {
   settings: "/settings",
   settingsProfile: "/settings/profile",
   settingsTeam: "/settings/team",
+  docs: "/docs",
+  docsSection: (slug: string) => `/docs/${slug}`,
 } as const;
 

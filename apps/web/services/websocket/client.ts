@@ -1,9 +1,16 @@
-// WebSocket client stub — will be wired to the backend WS server.
+// WebSocket client — authenticates via first message (not URL params,
+// which are logged in server/proxy access logs).
 let ws: WebSocket | null = null;
 
 export function connectWebSocket(token: string, url?: string): WebSocket {
   const endpoint = url ?? (process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:8080/ws");
-  ws = new WebSocket(`${endpoint}?token=${token}`);
+  ws = new WebSocket(endpoint);
+
+  ws.addEventListener("open", () => {
+    // Send auth token as the first message so it never appears in server logs
+    ws?.send(JSON.stringify({ type: "auth", token }));
+  });
+
   return ws;
 }
 
