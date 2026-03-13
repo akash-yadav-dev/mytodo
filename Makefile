@@ -118,6 +118,32 @@ lint:
 format:
 	@echo "Formatting code..."
 	gofmt -s -w $(GO_FILES)
+
+# Proto generation variables
+PROTO_DIR=apps/api/internal/auth/interfaces/grpc/proto
+PB_DIR=apps/api/internal/auth/interfaces/grpc/pb
+
+## proto: Generate Go code from protobuf files (requires protoc + plugins)
+## Install plugins: go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+##                  go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+## Install protoc:  https://grpc.io/docs/protoc-installation/
+proto:
+	@echo "Generating protobuf code..."
+	protoc -I=$(PROTO_DIR) \
+	  --go_out=$(PB_DIR) \
+	  --go_opt=paths=source_relative \
+	  --go-grpc_out=$(PB_DIR) \
+	  --go-grpc_opt=paths=source_relative \
+	  $(PROTO_DIR)/auth.proto \
+	  $(PROTO_DIR)/user.proto
+	@echo "Proto generation complete."
+
+## proto-install-plugins: Install protoc Go plugins
+proto-install-plugins:
+	@echo "Installing protoc Go plugins..."
+	go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+	@echo "Plugins installed. Make sure \$$GOPATH/bin is in your PATH."
 	goimports -w $(GO_FILES)
 
 ## tidy: Tidy Go modules

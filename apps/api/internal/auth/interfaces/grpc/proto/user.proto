@@ -1,0 +1,92 @@
+syntax = "proto3";
+
+package auth;
+
+option go_package = "mytodo/apps/api/internal/auth/interfaces/grpc/pb";
+
+import "auth.proto";
+
+// UserService provides user management operations
+service UserService {
+  // GetUser retrieves a user by ID
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+
+  // ListUsers retrieves a paginated list of users
+  rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
+
+  // UpdateUser updates an existing user's information
+  rpc UpdateUser(UpdateUserRequest) returns (UpdateUserResponse);
+
+  // DeleteUser removes a user account
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+
+  // GetUserPermissions retrieves the permissions assigned to a user
+  rpc GetUserPermissions(GetUserPermissionsRequest) returns (GetUserPermissionsResponse);
+}
+
+// GetUserRequest contains the user ID to look up
+message GetUserRequest {
+  string user_id = 1;
+}
+
+// GetUserResponse contains the requested user
+message GetUserResponse {
+  User user = 1;
+}
+
+// ListUsersRequest contains pagination parameters
+message ListUsersRequest {
+  int32 page = 1;
+  int32 page_size = 2;
+  // Optional filter: "active" or "inactive"
+  string status_filter = 3;
+}
+
+// ListUsersResponse contains a paginated list of users
+message ListUsersResponse {
+  repeated User users = 1;
+  int32 total_count = 2;
+  int32 page = 3;
+  int32 page_size = 4;
+}
+
+// UpdateUserRequest contains the user ID and fields to update
+message UpdateUserRequest {
+  string user_id = 1;
+  string name = 2;
+  // email updates require re-verification; send empty string to leave unchanged
+  string email = 3;
+}
+
+// UpdateUserResponse contains the updated user
+message UpdateUserResponse {
+  User user = 1;
+}
+
+// DeleteUserRequest contains the user ID to delete
+message DeleteUserRequest {
+  string user_id = 1;
+}
+
+// DeleteUserResponse confirms the deletion
+message DeleteUserResponse {
+  string message = 1;
+}
+
+// GetUserPermissionsRequest contains the user ID
+message GetUserPermissionsRequest {
+  string user_id = 1;
+}
+
+// Permission represents a single permission entry
+message Permission {
+  string resource = 1;
+  string action = 2;
+}
+
+// GetUserPermissionsResponse contains the user's permissions
+message GetUserPermissionsResponse {
+  string user_id = 1;
+  repeated string roles = 2;
+  repeated Permission permissions = 3;
+}
